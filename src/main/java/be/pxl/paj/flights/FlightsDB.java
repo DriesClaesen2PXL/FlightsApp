@@ -1,10 +1,6 @@
 package be.pxl.paj.flights;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,11 +11,14 @@ import java.util.Properties;
  * for flights, reserve seats, show reservations, and cancel reservations.
  */
 public class FlightsDB {
+	public static final String QUERY_LOGIN = "SELECT * FROM CUSTOMER WHERE handle = ? AND password = ?";
+
+	private PreparedStatement queryLogin;
 
 	/**
 	 * Maximum number of reservations to allow on one flight.
 	 */
-	private static int MAX_FLIGHT_BOOKINGS = 3;
+	private static final int MAX_FLIGHT_BOOKINGS = 3;
 
 	/**
 	 * Holds the connection to the database.
@@ -51,6 +50,7 @@ public class FlightsDB {
 	 */
 	public void init() throws SQLException {
 		// TODO: create prepared statements here
+		queryLogin = conn.prepareStatement(QUERY_LOGIN);
 	}
 
 	/**
@@ -59,7 +59,18 @@ public class FlightsDB {
 	 * @return The authenticated user or null if login failed.
 	 */
 	public User logIn(String handle, String password) throws SQLException {
-		// TODO: implement this properly
+		try {
+			queryLogin.setString(1, handle);
+			queryLogin.setString(2, password);
+			ResultSet results = queryLogin.executeQuery();
+			if (results.next()) {
+				int id = results.getInt("uid");
+				String fullName = results.getString("name");
+				return new User(id, handle, fullName);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		return null;
 	}
 
